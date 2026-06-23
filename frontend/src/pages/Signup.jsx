@@ -1,18 +1,36 @@
 import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { signup } from '../services/api'
 
 function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Signup attempt:', { name, email, password })
+    setError('')
+    setLoading(true)
+
+    try {
+      await signup(name, email, password)
+      navigate('/login')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div>
       <h1>Signup</h1>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
       <form onSubmit={handleSubmit}>
         <div>
           <label>Name</label>
@@ -42,10 +60,17 @@ function Signup() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
           />
         </div>
-        <button type="submit">Signup</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Creating account...' : 'Signup'}
+        </button>
       </form>
+
+      <p>
+        Already have an account? <Link to="/login">Login</Link>
+      </p>
     </div>
   )
 }
